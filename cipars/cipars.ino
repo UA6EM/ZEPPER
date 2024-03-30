@@ -2,7 +2,7 @@
 // Добавить библиотеку Гайвера -   https://github.com/GyverLibs/GyverButton
 // Определения
 
-#define DEBUG                          // Замаркировать если не нужны тесты 
+//#define DEBUG                          // Замаркировать если не нужны тесты
 #define UA6EM                          // Замаркировать, если скетч для CIPARS
 #define SECONDS(x) ((x)*1000UL)
 #define MINUTES(x) (SECONDS(x) * 60UL)
@@ -63,6 +63,7 @@ int timerPosition = 0;
 volatile int newEncoderPos;            // Новая позиция энкодера
 static int currentEncoderPos = 0;      // Текущая позиция энкодера
 volatile  int d_resis = 127;
+bool zepper_flag;
 
 #ifndef UA6EM
 #define I2C_ADDR 0x27 //0x3F //0x27
@@ -185,7 +186,7 @@ RotaryEncoder encoder(PIN_ENCODER1, PIN_ENCODER2);
 /*** Обработчик прерывания для энкодера ***/
 ISR(PCINT2_vect) {
   encoder.tick();
-  // Btn1.tick();
+  // Btn1.tick(); // в прерывании кнопка от Гайвера не работает
 }
 
 // функция выбора времени работы
@@ -460,6 +461,46 @@ void myDisplay() {
   lcd.print("ma");
 }
 
+
+// *** Вывод на дисплей в режиме ZEPPER ***
+void zepDisplay() {
+  // 1 строка
+  lcd.setCursor(0, 0);
+  lcd.print("Т-");
+  lcd.print(memTimers / 1000);
+#ifdef UA6EM
+  lcd.print("сек ");
+#else
+  lcd.print("sek.");
+#endif
+  lcd.setCursor(9, 0);
+  lcd.print("U=");
+#ifdef MCP4151MOD  // можно замапить в реальный % выходного сигнала
+  lcd.print(map(currentPotenciometrPercent, 1, 255, 1, 100));
+#else
+  lcd.print(map(currentPotenciometrPercent, 1, 127, 1, 100));
+#endif
+  lcd.print("%  ");
+
+
+  // 2 строка
+  lcd.setCursor(0, 1);
+  lcd.print("F=");
+  //lcd.setCursor(3, 1);                   //1 строка 7 позиция
+  float freq_tic = ifreq;
+  float kHz = freq_tic / 1000;
+  lcd.print(kHz, 0);
+  lcd.print("kHz ");
+
+  // 2 строка
+  lcd.setCursor(9, 1);
+  lcd.print("I=");
+  lcd.setCursor(11, 1);
+  Data_ina219 = ina219.shuntCurrent() * 1000;
+  lcd.print(Data_ina219 * 2);
+  lcd.print("ma");
+}
+
 // Установка частоты и мощности для режима ZEPPER
 // Частота в герцах, напряжение в вольтах от 0 до 12
 unsigned long SetFreqToZepper(float zepper_freq, uint8_t power ) {
@@ -563,6 +604,7 @@ void loop() {
     timMillis = millis();
     isWorkStarted = 1;
   }
+  
   if (mill - prevUpdateDataIna > 1000 * 2) {
     Data_ina219 = ina219.shuntCurrent() * 1000;
     prevUpdateDataIna = millis();
@@ -591,54 +633,101 @@ void loop() {
 
 } /****************** E N D  L O O P *****************/
 
+
 void zepper_01() {
+
+  zepper_flag = true;
   digitalWrite(ON_OFF_CASCADE_PIN, HIGH);    // Включили выход генератора
   Serial.println("Программа ZEPPER 1");
   float freq_zepper = 473000; // Частота 473 Кгц
   uint8_t v_zepper = 5;       // 5 вольт на выход
   uint32_t t_zepper;
-  uint32_t t_exposite = 120000;
+  uint32_t t_exposite = 120200;
+  memTimers = t_exposite;
+  ifreq = freq_zepper;
+  zepDisplay();
+
   t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
   Serial.print("Частота ");
   Serial.print(freq_zepper / 1000);
   Serial.println(" kHz");
-  while ((millis() - t_zepper) <= t_exposite);
+  while ((millis() - t_zepper) <= t_exposite) {
+    if ((millis() - t_zepper) % 10000) {
+      memTimers = t_exposite - ( millis() - t_zepper);
+      zepDisplay();
+    }
+  }
 
   freq_zepper = 395000; // Частота 395 Кгц
+  memTimers = t_exposite;
+  ifreq = freq_zepper;
+  zepDisplay();
   t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
   Serial.print("Частота ");
   Serial.print(freq_zepper / 1000);
   Serial.println(" kHz");
-  while ((millis() - t_zepper) <= t_exposite);
+  while ((millis() - t_zepper) <= t_exposite) {
+    if ((millis() - t_zepper) % 10000) {
+      memTimers = t_exposite - ( millis() - t_zepper);
+      zepDisplay();
+    }
+  }
 
   freq_zepper = 403850; // Частота 403.85 Кгц
+  memTimers = t_exposite;
+  ifreq = freq_zepper;
+  zepDisplay();
   t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
   Serial.print("Частота ");
   Serial.print(freq_zepper / 1000);
   Serial.println(" kHz");
-  while ((millis() - t_zepper) <= t_exposite);
+  while ((millis() - t_zepper) <= t_exposite) {
+    if ((millis() - t_zepper) % 10000) {
+      memTimers = t_exposite - ( millis() - t_zepper);
+      zepDisplay();
+    }
+  }
 
   freq_zepper = 397600; // Частота 397.6 Кгц
+  memTimers = t_exposite;
+  ifreq = freq_zepper;
+  zepDisplay();
   t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
   Serial.print("Частота ");
   Serial.print(freq_zepper / 1000);
   Serial.println(" kHz");
-  while ((millis() - t_zepper) <= t_exposite);
+  while ((millis() - t_zepper) <= t_exposite) {
+    if ((millis() - t_zepper) % 10000) {
+      memTimers = t_exposite - ( millis() - t_zepper);
+      zepDisplay();
+    }
+  }
 
   digitalWrite(ON_OFF_CASCADE_PIN, LOW);       // Выключили выход генератора
   Serial.println("Возьмите в руки электроды ");//
 
   freq_zepper = 30000; // Частота 30.0 Кгц
+  memTimers = t_exposite * 4;
+  ifreq = freq_zepper;
+  zepDisplay();
   t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
   Serial.print("Частота ");
   Serial.print(freq_zepper / 1000);
   Serial.println(" kHz");
   delay(15000);
+  t_zepper += 15000;
   Serial.println("Генератор включен");//
   digitalWrite(ON_OFF_CASCADE_PIN, HIGH);
-  while ((millis() - t_zepper) <= t_exposite * 4); // экспозиция 8 минут
+  while ((millis() - t_zepper) <= t_exposite*4) {
+    if ((millis() - t_zepper) % 10000) {
+      memTimers = t_exposite * 4 - ( millis() - t_zepper);
+      zepDisplay();
+    }
+  }
+
   Serial.println("Генератор выключен");//
   digitalWrite(ON_OFF_CASCADE_PIN, LOW);
+  zepper_flag = false;
 }
 
 /*

@@ -120,64 +120,6 @@ GButton Btn1(PIN_ENC_BUTTON);
   boolean isTriple();   // возвращает true при тройном клике. Сбрасывается после вызова
 */
 
-
-//------Cl_Btn----------------------
-/*
-  enum { sbNONE = 0,
-       sbClick,
-       sbLong
-     }; //состояние не изменилось/клик/долгое нажатие
-  class Cl_Btn {
-  protected:
-    const byte pin;
-    byte state;
-    bool bounce = 0;
-    bool btn = 1, oldBtn;
-    unsigned long past;
-    const uint32_t time = 500;
-    bool flag = 0;
-    uint32_t past_flag = 0;
-  public:
-    Cl_Btn(byte p)
-      : pin(p) {}
-    //инициализация-вставить в setup()
-    void init() {
-      pinMode(pin, INPUT_PULLUP);
-    }
-    //работа-вставить в loop()
-    void run() {
-      state = sbNONE;
-      bool newBtn = digitalRead(pin);
-      if (!bounce && newBtn != btn) {
-        bounce = 1;
-        past = mill;
-      }
-      if (bounce && mill - past >= 10) {
-        bounce = 0;
-        oldBtn = btn;
-        btn = newBtn;
-        if (!btn && oldBtn) {
-          flag = 1;
-          past_flag = mill;
-        }
-        if (!oldBtn && btn && flag && mill - past_flag < time) {
-          flag = 0;
-          state = sbClick;
-        }
-      }
-      if (flag && mill - past_flag >= time) {
-        flag = 0;
-        state = sbLong;
-      }
-    }
-    byte read() {
-      return state;
-    }
-  };
-  Cl_Btn Btn1(PIN_ENC_BUTTON);  //Экземпляр обработчика для кнопки энкодера
-*/
-
-
 /******* Простой энкодер *******/
 #include <util/atomic.h>    // для атомарности чтения данных в прерываниях
 #include <RotaryEncoder.h>  // https://www.arduino.cc/reference/en/libraries/rotaryencoder/
@@ -592,7 +534,7 @@ void setup() {
 void loop() {
   mill = millis();
   Btn1.tick();
-  if (Btn1.isClick()) {
+  if (Btn1.isDouble()) {
     zepper_01();
   }
 

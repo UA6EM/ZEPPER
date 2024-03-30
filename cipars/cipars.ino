@@ -1,4 +1,5 @@
 // Генератор для катушки Мишина на основе DDS AD9833
+// Добавить библиотеку Гайвера -   https://github.com/GyverLibs/GyverButton
 // Определения
 
 #define DEBUG                          // Замаркировать если не нужны тесты 
@@ -17,7 +18,7 @@
 #define CORRECT_PIN A7                 // Пин для внешней корректировки частоты.
 
 //AD9833
-//#define AD9833_MISO 
+//#define AD9833_MISO
 #define AD9833_MOSI A1
 #define AD9833_SCK  A2
 #define AD9833_CS   A3
@@ -55,7 +56,7 @@ long FREQ_MAX = 500000;                // 500kHz
 long ifreq = FREQ_MIN;
 long freq = FREQ_MIN;
 const unsigned long freqSPI = 250000;  // Частота только для HW SPI AD9833
-                                       // UNO SW SPI = 250kHz  
+// UNO SW SPI = 250kHz
 const unsigned long availableTimers[] = { oneMinute * 15, oneMinute * 30, oneMinute * 45, oneMinute * 60 };
 const byte maxTimers = 4;
 int timerPosition = 0;
@@ -69,7 +70,7 @@ volatile  int d_resis = 127;
 LiquidCrystal_I2C lcd(I2C_ADDR, 20, 4);
 #else
 #define I2C_ADDR 0x3F
-#include <LCD_1602_RUS.h> 
+#include <LCD_1602_RUS.h>
 LCD_1602_RUS lcd(I2C_ADDR, 16, 2);
 #endif
 
@@ -104,12 +105,28 @@ AD9833 Ad9833(AD9833_CS, AD9833_MOSI, AD9833_SCK); // SW SPI speed 250kHz
 //    *** Используемые подпрограммы выносим сюда ***   //
 
 /*** Обработчик кнопки энкодера ***/
+#include "GyverButton.h"           // https://github.com/GyverLibs/GyverButton
+GButton Btn1(PIN_ENC_BUTTON);
+/*
+  boolean isPress();    // возвращает true при нажатии на кнопку. Сбрасывается после вызова
+  boolean isRelease();  // возвращает true при отпускании кнопки. Сбрасывается после вызова
+  boolean isClick();    // возвращает true при клике. Сбрасывается после вызова
+  boolean isHolded();   // возвращает true при удержании дольше timeout. Сбрасывается после вызова
+  boolean isHold();     // возвращает true при нажатой кнопке, не сбрасывается
+  boolean state();      // возвращает состояние кнопки
+  boolean isSingle();   // возвращает true при одиночном клике. Сбрасывается после вызова
+  boolean isDouble();   // возвращает true при двойном клике. Сбрасывается после вызова
+  boolean isTriple();   // возвращает true при тройном клике. Сбрасывается после вызова
+*/
+
+
 //------Cl_Btn----------------------
-enum { sbNONE = 0,
+/*
+  enum { sbNONE = 0,
        sbClick,
        sbLong
-     }; /*состояние не изменилось/клик/долгое нажатие*/
-class Cl_Btn {
+     }; //состояние не изменилось/клик/долгое нажатие
+  class Cl_Btn {
   protected:
     const byte pin;
     byte state;
@@ -122,11 +139,11 @@ class Cl_Btn {
   public:
     Cl_Btn(byte p)
       : pin(p) {}
-    /*инициализация-вставить в setup()*/
+    //инициализация-вставить в setup()
     void init() {
       pinMode(pin, INPUT_PULLUP);
     }
-    /*работа-вставить в loop()*/
+    //работа-вставить в loop()
     void run() {
       state = sbNONE;
       bool newBtn = digitalRead(pin);
@@ -155,8 +172,10 @@ class Cl_Btn {
     byte read() {
       return state;
     }
-};
-Cl_Btn Btn1(PIN_ENC_BUTTON);  //Экземпляр обработчика для кнопки энкодера
+  };
+  Cl_Btn Btn1(PIN_ENC_BUTTON);  //Экземпляр обработчика для кнопки энкодера
+*/
+
 
 /******* Простой энкодер *******/
 #include <util/atomic.h>    // для атомарности чтения данных в прерываниях
@@ -166,6 +185,7 @@ RotaryEncoder encoder(PIN_ENCODER1, PIN_ENCODER2);
 /*** Обработчик прерывания для энкодера ***/
 ISR(PCINT2_vect) {
   encoder.tick();
+  Btn1.tick();
 }
 
 // функция выбора времени работы
@@ -190,9 +210,9 @@ void setTimer() {
 
 void testMCP4151() {
 #ifdef MCP4151MOD
-d_resis = 255;
+  d_resis = 255;
 #else
-d_resis = 127;
+  d_resis = 127;
 #endif
 
   Serial.println("START Test MCP4151");
@@ -219,10 +239,10 @@ void resetPotenciometer() {
 
 // Уровень percent - от 0 до 100% от максимума.
 void setResistance(int percent) {
- // resetPotenciometer();
- // for (int i = 0; i < percent; i++) {
-    wiperValue = percent;;
- // }
+  // resetPotenciometer();
+  // for (int i = 0; i < percent; i++) {
+  wiperValue = percent;;
+  // }
   Potentiometer.writeValue(wiperValue);  // Set MCP4151
 }
 
@@ -256,8 +276,8 @@ void processPotenciometr() {
 void startEncoder() {
   attachInterrupt(1, Encoder2, RISING);
   analogWrite(PIN_ENCODER3, 0x80);  // Установим на пине частоту 490 гц скважность 2
- }
- 
+}
+
 void Encoder2(void) {               // Процедура вызываемая прерыванием (обрабатываем энкодер)
   encoder.tick();
 }
@@ -275,7 +295,7 @@ unsigned long setTimerLCD(unsigned long timlcd) {
 #ifdef UA6EM
     lcd.print("    СТОП!     ");
 #else
-     lcd.print("    STOP!     ");
+    lcd.print("    STOP!     ");
 #endif
     digitalWrite(ON_OFF_CASCADE_PIN, LOW);
     start_Buzzer();
@@ -445,9 +465,9 @@ void setup() {
   Serial.begin(115200);
   Serial.println("START");
 
-#ifdef MCP4151MOD  
+#ifdef MCP4151MOD
   lcd.begin();  // Зависит от версии библиотеки
-//   lcd.init();
+  //   lcd.init();
 #else
   lcd.init();   // https://www.arduino.cc/reference/en/libraries/liquidcrystal-i2c/
 #endif
@@ -463,7 +483,8 @@ void setup() {
   // ждем секунду после настройки потенциометра
   delay(1000);
 
-  Btn1.init();
+  // Кнопка от Квона
+  //Btn1.init();
 
   pinMode(ON_OFF_CASCADE_PIN, OUTPUT);
   pinMode(PIN_ZUM, OUTPUT);
@@ -504,10 +525,10 @@ void setup() {
   startEncoder();
 
   memTimers = availableTimers[0];  // выставляем 15 минут по умолчанию
-#ifdef DEBUG  
+#ifdef DEBUG
   testMCP4151();
-#endif  
-  wiperValue = d_resis/2;
+#endif
+  wiperValue = d_resis / 2;
   //currentEncoderPos = wiperValue;
   Potentiometer.writeValue(wiperValue);  // Set MCP4131 or MCP4151 to mid position
 }  //******** END SETUP ********//
@@ -516,8 +537,11 @@ void setup() {
 // *** ТЕЛО ПРОГРАММЫ ***
 void loop() {
   mill = millis();
-  Btn1.run();
-  if (Btn1.read() == sbLong) {
+
+  // Кнопка от Квона
+  // Btn1.run();
+  // if (Btn1.read() == sbLong) {
+  if (Btn1.isHolded()) {
     oldmemTimers = memTimers;
     timMillis = millis();
     isWorkStarted = 1;
@@ -530,11 +554,11 @@ void loop() {
   if (isWorkStarted == 1) {
     memTimers = setTimerLCD(memTimers);
   }
-  
+
   ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     newEncoderPos = encoder.getPosition();
   }
-  
+
   // если значение экодера поменялось
   if (currentEncoderPos != newEncoderPos) {
     // если работа ещё не началась, то можем устанавливать время
@@ -550,41 +574,39 @@ void loop() {
 
 } /****************** E N D  L O O P *****************/
 
-void zepper_01(){
+void zepper_01() {
 
-  
+
 }
 
 /*
- * A0 - MCP41x1_CS       CS
- * A1 - AD9833_MOSI      AD9833_SDATA
- * A2 - AD9833_SCK       AD9833_SCLK
- * A3 - AD9833_CS        AD9833_FSYNC
- * A4 - LCD1602/LCD2004  SDA
- * A5 - LCD1602/LCD2004  SCL
- * A6 -
- * A7 - SENS_IMPLOSION
- * D0 - RX
- * D1 - TX
- * D2 - 
- * D3 - PWM, tic.encoder() (not connected)
- * D4 - 
- * D5 - LT1206_SHUTDOWN
- * D6 - ENC_DT
- * D7 - ENC_CLK
- * D8 - ENC_SW
- * D9 - BUZZER
- * D10 -
- * D11 - MCP41x1_MOSI MOSI  SDI/SDO
- * D12 - MCP41x1_MISO MISO  only shematic diagram to SDI/SDO
- * D13 - MCP41x1_SCK  SCK   SCK
- * 
- * D14 - A0
- * D15 - A1
- * D16 - A2
- * D17 - A3
- * D18 - A4
- * D19 - A5
- */
+   A0 - MCP41x1_CS       CS
+   A1 - AD9833_MOSI      AD9833_SDATA
+   A2 - AD9833_SCK       AD9833_SCLK
+   A3 - AD9833_CS        AD9833_FSYNC
+   A4 - LCD1602/LCD2004  SDA
+   A5 - LCD1602/LCD2004  SCL
+   A6 -
+   A7 - SENS_IMPLOSION
+   D0 - RX
+   D1 - TX
+   D2 -
+   D3 - PWM, tic.encoder() (not connected)
+   D4 -
+   D5 - LT1206_SHUTDOWN
+   D6 - ENC_DT
+   D7 - ENC_CLK
+   D8 - ENC_SW
+   D9 - BUZZER
+   D10 -
+   D11 - MCP41x1_MOSI MOSI  SDI/SDO
+   D12 - MCP41x1_MISO MISO  only shematic diagram to SDI/SDO
+   D13 - MCP41x1_SCK  SCK   SCK
 
- 
+   D14 - A0
+   D15 - A1
+   D16 - A2
+   D17 - A3
+   D18 - A4
+   D19 - A5
+*/

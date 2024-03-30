@@ -553,7 +553,6 @@ void loop() {
   Btn1.tick();
   if (Btn1.isClick()) {
     zepper_01();
-
   }
 
   // Кнопка от Квона
@@ -634,9 +633,12 @@ void zepper_01() {
   Serial.print("Частота ");
   Serial.print(freq_zepper / 1000);
   Serial.println(" kHz");
-  while ((millis() - t_zepper) <= t_exposite * 4); // экспозиция 8 минут
+  delay(15000);
   Serial.println("Генератор включен");//
   digitalWrite(ON_OFF_CASCADE_PIN, HIGH);
+  while ((millis() - t_zepper) <= t_exposite * 4); // экспозиция 8 минут
+  Serial.println("Генератор выключен");//
+  digitalWrite(ON_OFF_CASCADE_PIN, LOW);
 }
 
 /*

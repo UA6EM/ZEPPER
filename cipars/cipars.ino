@@ -185,7 +185,7 @@ RotaryEncoder encoder(PIN_ENCODER1, PIN_ENCODER2);
 /*** Обработчик прерывания для энкодера ***/
 ISR(PCINT2_vect) {
   encoder.tick();
-  Btn1.tick();
+  // Btn1.tick();
 }
 
 // функция выбора времени работы
@@ -390,6 +390,7 @@ void readAnalogAndSetFreqInLoop() {
   }
 }
 
+
 // *** Вывод на дисплей ***
 void myDisplay() {
   // 1 строка
@@ -457,6 +458,18 @@ void myDisplay() {
   lcd.setCursor(11, 1);
   lcd.print(Data_ina219 * 2);
   lcd.print("ma");
+}
+
+// Установка частоты и мощности для режима ZEPPER
+// Частота в герцах, напряжение в вольтах от 0 до 12
+unsigned long SetFreqToZepper(float zepper_freq, uint8_t power ) {
+  unsigned long t_zepper = millis();
+  ifreq = zepper_freq;
+  Ad9833.setFrequency((float)ifreq, 0);
+  uint8_t v_out = map(power, 0, 12, 0, 255); // Переведём напряжение в значение потенциометра
+  Potentiometer.writeValue(v_out);
+  digitalWrite(ON_OFF_CASCADE_PIN, HIGH);    // Включили выход генератора
+  return t_zepper;
 }
 
 
@@ -537,6 +550,11 @@ void setup() {
 // *** ТЕЛО ПРОГРАММЫ ***
 void loop() {
   mill = millis();
+  Btn1.tick();
+  if (Btn1.isClick()) {
+    zepper_01();
+
+  }
 
   // Кнопка от Квона
   // Btn1.run();
@@ -575,8 +593,50 @@ void loop() {
 } /****************** E N D  L O O P *****************/
 
 void zepper_01() {
+  digitalWrite(ON_OFF_CASCADE_PIN, HIGH);    // Включили выход генератора
+  Serial.println("Программа ZEPPER 1");
+  float freq_zepper = 473000; // Частота 473 Кгц
+  uint8_t v_zepper = 5;       // 5 вольт на выход
+  uint32_t t_zepper;
+  uint32_t t_exposite = 120000;
+  t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
+  Serial.print("Частота ");
+  Serial.print(freq_zepper / 1000);
+  Serial.println(" kHz");
+  while ((millis() - t_zepper) <= t_exposite);
 
+  freq_zepper = 395000; // Частота 395 Кгц
+  t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
+  Serial.print("Частота ");
+  Serial.print(freq_zepper / 1000);
+  Serial.println(" kHz");
+  while ((millis() - t_zepper) <= t_exposite);
 
+  freq_zepper = 403850; // Частота 403.85 Кгц
+  t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
+  Serial.print("Частота ");
+  Serial.print(freq_zepper / 1000);
+  Serial.println(" kHz");
+  while ((millis() - t_zepper) <= t_exposite);
+
+  freq_zepper = 397600; // Частота 397.6 Кгц
+  t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
+  Serial.print("Частота ");
+  Serial.print(freq_zepper / 1000);
+  Serial.println(" kHz");
+  while ((millis() - t_zepper) <= t_exposite);
+
+  digitalWrite(ON_OFF_CASCADE_PIN, LOW);       // Выключили выход генератора
+  Serial.println("Возьмите в руки электроды ");//
+
+  freq_zepper = 30000; // Частота 30.0 Кгц
+  t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
+  Serial.print("Частота ");
+  Serial.print(freq_zepper / 1000);
+  Serial.println(" kHz");
+  while ((millis() - t_zepper) <= t_exposite * 4); // экспозиция 8 минут
+  Serial.println("Генератор включен");//
+  digitalWrite(ON_OFF_CASCADE_PIN, HIGH);
 }
 
 /*

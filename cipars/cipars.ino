@@ -473,8 +473,8 @@ void setup() {
   Serial.println("START");
 
 #ifdef MCP4151MOD
-  lcd.begin();  // Зависит от версии библиотеки
-  //   lcd.init();
+//  lcd.begin();  // Зависит от версии библиотеки
+     lcd.init();
 #else
   lcd.init();   // https://www.arduino.cc/reference/en/libraries/liquidcrystal-i2c/
 #endif
@@ -587,8 +587,19 @@ void loop() {
 } /****************** E N D  L O O P *****************/
 
 
-void zepper_01() {
+// ************* ПРОГРАММА ЦЕППЕР для ОЧКОВ ************
+// Очки, программа 1
+// 473kHz - 2 минуты
+// 395kHz - 2 минуты
+// 403.85 - 2 минуты
+// 397.6  - 2 минуты
+// Электроды
+// 30kHz - 7 минут
+// ПЕРЕРЫВ - 20 минут
+// 30kHz - 7 минут
 
+
+void zepper_01() {
   zepper_flag = true;
   digitalWrite(ON_OFF_CASCADE_PIN, HIGH);    // Включили выход генератора
   Serial.println("Программа ZEPPER 1");

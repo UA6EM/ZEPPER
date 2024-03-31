@@ -666,8 +666,149 @@ void zepper_01() {
   Serial.println("Генератор выключен");
   ifreq = FREQ_MIN;
 
-}  // *** END ZEPPER ***
+}  // *** END ZEPPER 1 ***
 
+void zepper_02() {
+
+  digitalWrite(ON_OFF_CASCADE_PIN, HIGH);  // Включили выход генератора
+  Serial.println("Программа ZEPPER 2");
+  Serial.println("Генератор включен");
+
+  // Работа с излучателем "ОЧКИ"
+  // Шаг первый, частота 473кГц время 2 минуты Uвых - 5 вольт
+  float freq_zepper = 353000;  // Частота 353 Кгц
+  uint8_t tau_freq = 2;
+  uint8_t v_zepper = 5;  // 5 вольт на выход для очков
+
+  // Установим параметры генерации ШАГ 1
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Первый шаг пройден");
+
+  // Установим параметры генерации ШАГ 2
+  freq_zepper = 395000;  // Частота 395 Кгц
+  tau_freq = 2;
+  v_zepper = 5;  // 5 вольт на выход для очков
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Второй шаг пройден");
+
+  // Установим параметры генерации ШАГ 3
+  freq_zepper = 405570;  // Частота 405.57 Кгц
+  tau_freq = 2;
+  v_zepper = 5;  // 5 вольт на выход для очков
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Третий шаг пройден");
+
+  // Установим параметры генерации ШАГ 4
+  freq_zepper = 403250;  // Частота 403.25 Кгц
+  tau_freq = 2;
+  v_zepper = 5;  // 5 вольт на выход для очков
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Четвёртый шаг пройден");
+
+  // Работа с излучателем "ЭЛЕКТРОДЫ"
+  Serial.println("Возьмите в руки электроды ");
+  // Установим параметры генерации ШАГ 1
+  freq_zepper = 30000;  // Частота 30.0 Кгц
+  tau_freq = 7;
+  v_zepper = 12;  // 12 вольт на выход для электродов
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Первый шаг пройден");
+
+  Serial.println("Отдыхаем 20 минут");
+  digitalWrite(ON_OFF_CASCADE_PIN, LOW);  // Выключили выход генератора
+
+  freq_zepper = 30000;  // Частота 30.0 Кгц
+  tau_freq = 20;
+  v_zepper = 0;  // 0 вольт на выход для электродов
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+
+  Serial.println("Шаг 2 - возьмите в руки электроды");
+  delay(5000);
+  digitalWrite(ON_OFF_CASCADE_PIN, HIGH);
+  freq_zepper = 30000;  // Частота 30.0 Кгц
+  tau_freq = 7;
+  v_zepper = 12;  // 12 вольт на выход для электродов
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Второй шаг пройден");
+  zepper_flag = false;
+
+  digitalWrite(ON_OFF_CASCADE_PIN, LOW);  // Выключили выход генератора
+  Serial.println("Программа ZEPPER 2");
+  Serial.println("Генератор выключен");
+  ifreq = FREQ_MIN;
+
+}  // *** END ZEPPER 2 ***
+
+void zepper_03() {
+
+  digitalWrite(ON_OFF_CASCADE_PIN, HIGH);  // Включили выход генератора
+  Serial.println("Программа ZEPPER 3");
+  Serial.println("Генератор включен");
+
+  // Работа с излучателем "ОЧКИ"
+  // Шаг первый, частота 473кГц время 2 минуты Uвых - 5 вольт
+  float freq_zepper = 473000;  // Частота 473 Кгц
+  uint8_t tau_freq = 2;
+  uint8_t v_zepper = 5;  // 5 вольт на выход для очков
+
+  // Установим параметры генерации ШАГ 1
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Первый шаг пройден");
+
+  // Установим параметры генерации ШАГ 2
+  freq_zepper = 395000;  // Частота 395 Кгц
+  tau_freq = 2;
+  v_zepper = 5;  // 5 вольт на выход для очков
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Второй шаг пройден");
+
+  // Установим параметры генерации ШАГ 3
+  freq_zepper = 404500;  // Частота 404.5 Кгц
+  tau_freq = 2;
+  v_zepper = 5;  // 5 вольт на выход для очков
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Третий шаг пройден");
+
+  // Установим параметры генерации ШАГ 4
+  freq_zepper = 401000;  // Частота 401.0 Кгц
+  tau_freq = 2;
+  v_zepper = 5;  // 5 вольт на выход для очков
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Четвёртый шаг пройден");
+
+  // Работа с излучателем "ЭЛЕКТРОДЫ"
+  Serial.println("Возьмите в руки электроды ");
+  // Установим параметры генерации ШАГ 1
+  freq_zepper = 30000;  // Частота 30.0 Кгц
+  tau_freq = 7;
+  v_zepper = 12;  // 12 вольт на выход для электродов
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Первый шаг пройден");
+
+  Serial.println("Отдыхаем 20 минут");
+  digitalWrite(ON_OFF_CASCADE_PIN, LOW);  // Выключили выход генератора
+
+  freq_zepper = 30000;  // Частота 30.0 Кгц
+  tau_freq = 20;
+  v_zepper = 0;  // 0 вольт на выход для электродов
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+
+  Serial.println("Шаг 2 - возьмите в руки электроды");
+  delay(5000);
+  digitalWrite(ON_OFF_CASCADE_PIN, HIGH);
+  freq_zepper = 30000;  // Частота 30.0 Кгц
+  tau_freq = 7;
+  v_zepper = 12;  // 12 вольт на выход для электродов
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Второй шаг пройден");
+  zepper_flag = false;
+
+  digitalWrite(ON_OFF_CASCADE_PIN, LOW);  // Выключили выход генератора
+  Serial.println("Программа ZEPPER 1");
+  Serial.println("Генератор выключен");
+  ifreq = FREQ_MIN;
+
+}  // *** END ZEPPER 3 ***
 
 void setFreqExposite(uint32_t freq, uint8_t minute, uint8_t power) {
   uint32_t t_exposite = MINUTES(1);

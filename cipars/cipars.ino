@@ -3,37 +3,37 @@
 // Определения
 
 //#define DEBUG                          // Замаркировать если не нужны тесты
-#define UA6EM                          // Замаркировать, если скетч для CIPARS
+#define UA6EM  // Замаркировать, если скетч для CIPARS
 #define SECONDS(x) ((x)*1000UL)
 #define MINUTES(x) (SECONDS(x) * 60UL)
 #define HOURS(x) (MINUTES(x) * 60UL)
 #define DAYS(x) (HOURS(x) * 24UL)
 #define WEEKS(x) (DAYS(x) * 7UL)
-#define ON_OFF_CASCADE_PIN 5           // Для выключения выходного каскада
+#define ON_OFF_CASCADE_PIN 5  // Для выключения выходного каскада
 #define PIN_ENCODER1 6
 #define PIN_ENCODER2 7
-#define PIN_ENCODER3 3                 // Шимится, по прерыванию обрабатывается энкодер
+#define PIN_ENCODER3 3  // Шимится, по прерыванию обрабатывается энкодер
 #define PIN_ENC_BUTTON 8
 #define PIN_ZUM 9
-#define CORRECT_PIN A7                 // Пин для внешней корректировки частоты.
+#define CORRECT_PIN A7  // Пин для внешней корректировки частоты.
 
 //AD9833
 //#define AD9833_MISO
 #define AD9833_MOSI A1
-#define AD9833_SCK  A2
-#define AD9833_CS   A3
+#define AD9833_SCK A2
+#define AD9833_CS A3
 
 //LCD1602_I2C OR LCD2004_I2C
-#define I2C_SDA     A4    // LCD1602 SDA
-#define I2C_SCK     A5    // LCD1602 SCK
+#define I2C_SDA A4  // LCD1602 SDA
+#define I2C_SCK A5  // LCD1602 SCK
 
 //MCP4151
-#define  MCP41x1_SCK   13 // Define SCK pin for MCP4131 or MCP4151
-#define  MCP41x1_MOSI  11 // Define MOSI pin for MCP4131 or MCP4151
-#define  MCP41x1_MISO  12 // Define MISO pin for MCP4131 or MCP4151
-#define  MCP41x1_CS    A0 // Define chipselect pin for MCP4131 or MCP4151
+#define MCP41x1_SCK 13   // Define SCK pin for MCP4131 or MCP4151
+#define MCP41x1_MOSI 11  // Define MOSI pin for MCP4131 or MCP4151
+#define MCP41x1_MISO 12  // Define MISO pin for MCP4131 or MCP4151
+#define MCP41x1_CS A0    // Define chipselect pin for MCP4131 or MCP4151
 
-#define zFreq 2           // Делитель интервала - секунда/2
+#define zFreq 2  // Делитель интервала - секунда/2
 
 // Глобальные переменные
 unsigned long interval = MINUTES(1);
@@ -49,10 +49,10 @@ unsigned long mill;  // переменная под millis()
 unsigned long prevCorrectTime = 0;
 unsigned long prevReadAnalogTime = 0;  // для отсчета 10 секунд между подстройкой частоты
 unsigned long prevUpdateDataIna = 0;   // для перерыва между обновлениями данных ina
-unsigned int  wiperValue;              // variable to hold wipervalue for MCP4131 or MCP4151
+unsigned int wiperValue;               // variable to hold wipervalue for MCP4131 or MCP4151
 unsigned int Data_ina219 = 0;
-long FREQ_MIN = 200000;                // 200kHz
-long FREQ_MAX = 500000;                // 500kHz
+long FREQ_MIN = 200000;  // 200kHz
+long FREQ_MAX = 500000;  // 500kHz
 long ifreq = FREQ_MIN;
 long freq = FREQ_MIN;
 const unsigned long freqSPI = 250000;  // Частота только для HW SPI AD9833
@@ -60,13 +60,13 @@ const unsigned long freqSPI = 250000;  // Частота только для HW 
 const unsigned long availableTimers[] = { oneMinute * 15, oneMinute * 30, oneMinute * 45, oneMinute * 60 };
 const byte maxTimers = 4;
 int timerPosition = 0;
-volatile int newEncoderPos;            // Новая позиция энкодера
-static int currentEncoderPos = 0;      // Текущая позиция энкодера
-volatile  int d_resis = 127;
+volatile int newEncoderPos;        // Новая позиция энкодера
+static int currentEncoderPos = 0;  // Текущая позиция энкодера
+volatile int d_resis = 127;
 bool zepper_flag;
 
 #ifndef UA6EM
-#define I2C_ADDR 0x27 //0x3F //0x27
+#define I2C_ADDR 0x27  //0x3F //0x27
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(I2C_ADDR, 20, 4);
 #else
@@ -77,7 +77,7 @@ LCD_1602_RUS lcd(I2C_ADDR, 16, 2);
 
 #include <Wire.h>
 #include <SPI.h>
-#define MCP4151MOD    // снять ремарки если используем библиотеку MCP4151(SPI у неё 16 битный)
+#define MCP4151MOD  // снять ремарки если используем библиотеку MCP4151(SPI у неё 16 битный)
 #ifndef MCP4151MOD
 #include <MCP4131.h>  // https://github.com/UA6EM/Arduino-MCP4131/tree/mpgsp
 MCP4131 Potentiometer(MCP41x1_CS);
@@ -101,12 +101,12 @@ int currentPotenciometrPercent = 63;
 #include <AD9833.h>  // Пробуем новую по ссылкам в README закладке
 //AD9833 AD(10, 11, 13);     // SW SPI over the HW SPI pins (UNO);
 //AD9833 Ad9833(AD9833_CS);  // HW SPI Defaults to 25MHz internal reference frequency
-AD9833 Ad9833(AD9833_CS, AD9833_MOSI, AD9833_SCK); // SW SPI speed 250kHz
+AD9833 Ad9833(AD9833_CS, AD9833_MOSI, AD9833_SCK);  // SW SPI speed 250kHz
 
 //    *** Используемые подпрограммы выносим сюда ***   //
 
 /*** Обработчик кнопки энкодера ***/
-#include "GyverButton.h"           // https://github.com/GyverLibs/GyverButton
+#include "GyverButton.h"  // https://github.com/GyverLibs/GyverButton
 GButton Btn1(PIN_ENC_BUTTON);
 /*
   boolean isPress();    // возвращает true при нажатии на кнопку. Сбрасывается после вызова
@@ -184,7 +184,8 @@ void resetPotenciometer() {
 void setResistance(int percent) {
   // resetPotenciometer();
   // for (int i = 0; i < percent; i++) {
-  wiperValue = percent;;
+  wiperValue = percent;
+  ;
   // }
   Potentiometer.writeValue(wiperValue);  // Set MCP4151
 }
@@ -221,7 +222,7 @@ void startEncoder() {
   analogWrite(PIN_ENCODER3, 0x80);  // Установим на пине частоту 490 гц скважность 2
 }
 
-void Encoder2(void) {               // Процедура вызываемая прерыванием (обрабатываем энкодер)
+void Encoder2(void) {  // Процедура вызываемая прерыванием (обрабатываем энкодер)
   encoder.tick();
 }
 
@@ -428,7 +429,11 @@ void zepDisplay() {
   // 2 строка
   if (digitalRead(ON_OFF_CASCADE_PIN)) {
     lcd.setCursor(0, 1);
-    lcd.print("                ");
+    if (ifreq / 1000 < 100 && !zepper_flag) {
+      lcd.print("          ");
+      zepper_flag = true;
+    }
+
     lcd.setCursor(0, 1);
     lcd.print("F=");
     //lcd.setCursor(3, 1);                   //1 строка 7 позиция
@@ -456,13 +461,13 @@ void zepDisplay() {
 
 // Установка частоты и мощности для режима ZEPPER
 // Частота в герцах, напряжение в вольтах от 0 до 12
-unsigned long SetFreqToZepper(float zepper_freq, uint8_t power ) {
+unsigned long SetFreqToZepper(float zepper_freq, uint8_t power) {
   unsigned long t_zepper = millis();
   ifreq = zepper_freq;
   Ad9833.setFrequency((float)ifreq, 0);
-  uint8_t v_out = map(power, 0, 12, 0, 255); // Переведём напряжение в значение потенциометра
+  uint8_t v_out = map(power, 0, 12, 0, 255);  // Переведём напряжение в значение потенциометра
   Potentiometer.writeValue(v_out);
-  digitalWrite(ON_OFF_CASCADE_PIN, HIGH);    // Включили выход генератора
+  digitalWrite(ON_OFF_CASCADE_PIN, HIGH);  // Включили выход генератора
   return t_zepper;
 }
 
@@ -473,10 +478,10 @@ void setup() {
   Serial.println("START");
 
 #ifdef MCP4151MOD
-//  lcd.begin();  // Зависит от версии библиотеки
-     lcd.init();
+  //  lcd.begin();  // Зависит от версии библиотеки
+  lcd.init();
 #else
-  lcd.init();   // https://www.arduino.cc/reference/en/libraries/liquidcrystal-i2c/
+  lcd.init();  // https://www.arduino.cc/reference/en/libraries/liquidcrystal-i2c/
 #endif
 
   lcd.backlight();
@@ -489,9 +494,6 @@ void setup() {
 
   // ждем секунду после настройки потенциометра
   delay(1000);
-
-  // Кнопка от Квона
-  //Btn1.init();
 
   pinMode(ON_OFF_CASCADE_PIN, OUTPUT);
   pinMode(PIN_ZUM, OUTPUT);
@@ -508,10 +510,10 @@ void setup() {
 
   SPI.begin();
   // This MUST be the first command after declaring the AD9833 object
-  Ad9833.begin();              // The loaded defaults are 1000 Hz SINE_WAVE using REG0
-  Ad9833.reset();              // Ресет после включения питания
-  Ad9833.setSPIspeed(freqSPI); // Частота SPI для AD9833 установлена 4 MHz
-  Ad9833.setWave(AD9833_OFF);  // Turn OFF the output
+  Ad9833.begin();               // The loaded defaults are 1000 Hz SINE_WAVE using REG0
+  Ad9833.reset();               // Ресет после включения питания
+  Ad9833.setSPIspeed(freqSPI);  // Частота SPI для AD9833 установлена 4 MHz
+  Ad9833.setWave(AD9833_OFF);   // Turn OFF the output
   delay(10);
   Ad9833.setWave(AD9833_SINE);  // Turn ON and freq MODE SINE the output
 
@@ -549,9 +551,6 @@ void loop() {
     zepper_01();
   }
 
-  // Кнопка от Квона
-  // Btn1.run();
-  // if (Btn1.read() == sbLong) {
   if (Btn1.isHolded()) {
     oldmemTimers = memTimers;
     timMillis = millis();
@@ -598,129 +597,96 @@ void loop() {
 // ПЕРЕРЫВ - 20 минут
 // 30kHz - 7 минут
 
-
 void zepper_01() {
-  zepper_flag = true;
-  digitalWrite(ON_OFF_CASCADE_PIN, HIGH);    // Включили выход генератора
+
+  digitalWrite(ON_OFF_CASCADE_PIN, HIGH);  // Включили выход генератора
   Serial.println("Программа ZEPPER 1");
-  float freq_zepper = 473000; // Частота 473 Кгц
-  uint8_t v_zepper = 5;       // 5 вольт на выход
-  uint32_t t_zepper;
-  uint32_t t_exposite = 120200;
-  memTimers = t_exposite;
-  ifreq = freq_zepper;
-  zepDisplay();
+  Serial.println("Генератор включен");
 
-  t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
-  Serial.print("Частота ");
-  Serial.print(freq_zepper / 1000);
-  Serial.println(" kHz");
-  while ((millis() - t_zepper) <= t_exposite) {
-    if ((millis() - t_zepper) % 10000) {
-      memTimers = t_exposite - (( millis() - t_zepper));
-      zepDisplay();
-    }
-  }
+  // Работа с излучателем "ОЧКИ"
+  // Шаг первый, частота 473кГц время 2 минуты Uвых - 5 вольт
+  float freq_zepper = 473000;  // Частота 473 Кгц
+  uint8_t tau_freq = 2;
+  uint8_t v_zepper = 5;  // 5 вольт на выход для очков
 
-  freq_zepper = 395000; // Частота 395 Кгц
-  memTimers = t_exposite;
-  ifreq = freq_zepper;
-  zepDisplay();
-  t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
-  Serial.print("Частота ");
-  Serial.print(freq_zepper / 1000);
-  Serial.println(" kHz");
-  while ((millis() - t_zepper) <= t_exposite) {
-    if ((millis() - t_zepper) % 10000) {
-      memTimers = t_exposite - (( millis() - t_zepper));
-      zepDisplay();
-    }
-  }
+  // Установим параметры генерации ШАГ 1
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Первый шаг пройден");
 
-  freq_zepper = 403850; // Частота 403.85 Кгц
-  memTimers = t_exposite;
-  ifreq = freq_zepper;
-  zepDisplay();
-  t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
-  Serial.print("Частота ");
-  Serial.print(freq_zepper / 1000);
-  Serial.println(" kHz");
-  while ((millis() - t_zepper) <= t_exposite) {
-    if ((millis() - t_zepper) % 10000) {
-      memTimers = t_exposite - (( millis() - t_zepper));
-      zepDisplay();
-    }
-  }
+  // Установим параметры генерации ШАГ 2
+  freq_zepper = 395000;  // Частота 395 Кгц
+  tau_freq = 2;
+  v_zepper = 5;  // 5 вольт на выход для очков
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Второй шаг пройден");
 
-  freq_zepper = 397600; // Частота 397.6 Кгц
-  memTimers = t_exposite;
-  ifreq = freq_zepper;
-  zepDisplay();
-  t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
-  Serial.print("Частота ");
-  Serial.print(freq_zepper / 1000);
-  Serial.println(" kHz");
-  while ((millis() - t_zepper) <= t_exposite) {
-    if ((millis() - t_zepper) % 10000) {
-      memTimers = t_exposite - (( millis() - t_zepper));
-      zepDisplay();
-    }
-  }
+  // Установим параметры генерации ШАГ 3
+  freq_zepper = 403850;  // Частота 403.85 Кгц
+  tau_freq = 2;
+  v_zepper = 5;  // 5 вольт на выход для очков
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Третий шаг пройден");
 
-  digitalWrite(ON_OFF_CASCADE_PIN, LOW);       // Выключили выход генератора
-  Serial.println("Возьмите в руки электроды ");//
+  // Установим параметры генерации ШАГ 4
+  freq_zepper = 397600;  // Частота 397.6 Кгц
+  tau_freq = 2;
+  v_zepper = 5;  // 5 вольт на выход для очков
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Четвёртый шаг пройден");
 
-  freq_zepper = 30000; // Частота 30.0 Кгц
-  memTimers = t_exposite * 3 + t_exposite;
-  ifreq = freq_zepper;
-  zepDisplay();
-  t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
-  Serial.print("Частота ");
-  Serial.print(freq_zepper / 1000);
-  Serial.println(" kHz");
-  delay(15000);
-  t_zepper += 15000;
-  Serial.println("Генератор включен");//
+  // Работа с излучателем "ЭЛЕКТРОДЫ"
+  Serial.println("Возьмите в руки электроды ");
+  // Установим параметры генерации ШАГ 1
+  freq_zepper = 30000;  // Частота 30.0 Кгц
+  tau_freq = 7;
+  v_zepper = 12;  // 12 вольт на выход для электродов
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Первый шаг пройден");
+
+  Serial.println("Отдыхаем 20 минут");
+  digitalWrite(ON_OFF_CASCADE_PIN, LOW);  // Выключили выход генератора
+
+  freq_zepper = 30000;  // Частота 30.0 Кгц
+  tau_freq = 20;
+  v_zepper = 0;  // 0 вольт на выход для электродов
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+
+  Serial.println("Шаг 2 - возьмите в руки электроды");
+  delay(5000);
   digitalWrite(ON_OFF_CASCADE_PIN, HIGH);
-  while ((millis() - t_zepper) <= (t_exposite * 3 + t_exposite)) {
-    if ((millis() - t_zepper) % 10000) {
-      memTimers = (t_exposite * 3 + t_exposite) - (( millis() - t_zepper));
-      zepDisplay();
-    }
-  }
-
-  Serial.println("Генератор выключен");//
-  digitalWrite(ON_OFF_CASCADE_PIN, LOW);
-
-  // Перерыв 20 минут
-  t_zepper = millis();
-  while ((millis() - t_zepper) <= t_exposite * 10) {
-    if ((millis() - t_zepper) % 10000) {
-      memTimers = (t_exposite * 10) - (( millis() - t_zepper));
-      zepDisplay();
-    }
-  }
-
-  freq_zepper = 30000; // Частота 30.0 Кгц
-  memTimers = t_exposite * 3 + t_exposite;
-  ifreq = freq_zepper;
-  zepDisplay();
-  t_zepper = SetFreqToZepper(freq_zepper, v_zepper);
-  Serial.print("Частота ");
-  Serial.print(freq_zepper / 1000);
-  Serial.println(" kHz");
-  delay(15000);
-  t_zepper += 15000;
-  Serial.println("Генератор включен");//
-  digitalWrite(ON_OFF_CASCADE_PIN, HIGH);
-  while ((millis() - t_zepper) <= (t_exposite * 3 + t_exposite)) {
-    if ((millis() - t_zepper) % 10000) {
-      memTimers = (t_exposite * 3 + t_exposite) - (( millis() - t_zepper));
-      zepDisplay();
-    }
-  }
-
+  freq_zepper = 30000;  // Частота 30.0 Кгц
+  tau_freq = 7;
+  v_zepper = 12;  // 12 вольт на выход для электродов
+  setFreqExposite(freq_zepper, tau_freq, v_zepper);
+  Serial.println("Второй шаг пройден");
   zepper_flag = false;
+
+  digitalWrite(ON_OFF_CASCADE_PIN, LOW);  // Выключили выход генератора
+  Serial.println("Программа ZEPPER 1");
+  Serial.println("Генератор выключен");
+  ifreq = FREQ_MIN;
+
+}  // *** END ZEPPER ***
+
+
+void setFreqExposite(uint32_t freq, uint8_t minute, uint8_t power) {
+  uint32_t t_exposite = MINUTES(1);
+  uint32_t t_zepper;
+  uint32_t t_exR = minute * t_exposite;  // Рассчётное время экспозиции
+  memTimers = t_exR;                     // Остаточное время экспозиции
+  ifreq = freq;
+
+  t_zepper = SetFreqToZepper(ifreq, power);
+  Serial.print("Частота ");
+  Serial.print(ifreq / 1000);
+  Serial.println(" kHz");
+
+  while ((millis() - t_zepper) <= t_exR) {
+    if ((millis() - t_zepper) % 10000) {
+      memTimers = t_exR - ((millis() - t_zepper));
+      zepDisplay();
+    }
+  }
 }
 
 /*
@@ -735,7 +701,7 @@ void zepper_01() {
    D0 - RX
    D1 - TX
    D2 -
-   D3 - PWM, tic.encoder() (not connected)
+   D3 - PWM, tic.encoder() (virtual, not connected)
    D4 -
    D5 - LT1206_SHUTDOWN
    D6 - ENC_DT
